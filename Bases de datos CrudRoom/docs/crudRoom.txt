@@ -1,0 +1,49 @@
+CREATE DATABASE crudRoom;
+USE crudRoom;
+
+CREATE TABLE salas(
+	id_sala INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(100) NOT NULL,
+    capacidad INT NOT NULL CHECK (capacidad > 0)
+);
+
+CREATE TABLE responsables(
+	id_responsable INT PRIMARY KEY AUTO_INCREMENT,
+    nombre_responsable VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE empleados(
+	id_empleado INT PRIMARY KEY AUTO_INCREMENT,
+    empleado_reserva VARCHAR(100) NOT NULL,
+    correo_empleado VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE reservas(
+	id_reserva INT PRIMARY KEY AUTO_INCREMENT,
+    id_sala INT NOT NULL,
+    id_responsable INT NOT NULL,
+    id_empleado INT NOT NULL,
+    fecha_reserva DATE NOT NULL,
+    hora_inicio TIME NOT NULL,
+    hora_fin TIME NOT NULL,
+    FOREIGN KEY (id_sala) REFERENCES salas(id_sala),
+	FOREIGN KEY (id_responsable) REFERENCES responsables(id_responsable),
+    FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado)
+);
+
+ALTER TABLE salas MODIFY capacidad INT NOT NULL CHECK (capacidad > 0);
+
+SHOW CREATE TABLE reservas;
+
+ALTER TABLE reservas DROP FOREIGN KEY reservas_ibfk_1;
+ALTER TABLE reservas DROP FOREIGN KEY reservas_ibfk_2;
+ALTER TABLE reservas DROP FOREIGN KEY reservas_ibfk_3;  
+
+ALTER TABLE reservas ADD CONSTRAINT reservas_ibfk_1 FOREIGN KEY (id_sala) REFERENCES salas(id_sala) ON DELETE CASCADE;
+ALTER TABLE reservas ADD CONSTRAINT reservas_ibfk_2 FOREIGN KEY (id_responsable) REFERENCES responsables(id_responsable) ON DELETE CASCADE;
+ALTER TABLE reservas ADD CONSTRAINT reservas_ibfk_3 FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado) ON DELETE CASCADE;
+
+ALTER TABLE reservas ADD CONSTRAINT check_horas CHECK (hora_fin > hora_inicio);
+
+
+select * from reservas;

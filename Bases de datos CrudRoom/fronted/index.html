@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>CRUD Reservas</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>CRUD Reservas</h1>
+
+  <!-- Botón para cargar todas las reservas -->
+  <button id="btn-cargar">Cargar reservas</button>
+
+  <!-- Tabla para mostrar datos -->
+  <table id="tabla-reservas">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Sala</th>
+        <th>Responsable</th>
+        <th>Fecha</th>
+        <th>Hora inicio</th>
+        <th>Hora fin</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Formulario para agregar una reserva -->
+  <h2>Agregar Reserva</h2>
+  <form id="form-agregar">
+    <input type="number" id="id_reserva" placeholder="ID Reserva" required>
+    <input type="number" id="id_sala" placeholder="ID Sala" required>
+    <input type="number" id="id_responsable" placeholder="ID Responsable" required>
+    <input type="number" id="id_empleado" placeholder="ID Empleado" required>
+    <input type="date" id="fecha_reserva" required>
+    <input type="time" id="hora_inicio" required>
+    <input type="time" id="hora_fin" required>
+    <button type="submit">Agregar</button>
+  </form>
+
+  <script src="main.js"></script>
+</body>
+</html>
+
+
+---------------------------
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>CRUD Reservas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Gestión de Reservas</h1>
+
+    <!-- Formulario -->
+    <form id="reservaForm">
+        <input type="hidden" id="id_reserva" />
+        <input type="number" id="id_sala" placeholder="ID Sala" required>
+        <input type="number" id="id_responsable" placeholder="ID Responsable" required>
+        <input type="number" id="id_empleado" placeholder="ID Empleado" required>
+        <input type="date" id="fecha_reserva" required>
+        <input type="time" id="hora_inicio" required>
+        <input type="time" id="hora_fin" required>
+        <button type="submit">Guardar</button>
+    </form>
+
+    <!-- Tabla -->
+    <table id="reservasTable" border="1">
+        <thead>
+            <tr>
+                <th>ID Reserva</th>
+                <th>ID Sala</th>
+                <th>ID Responsable</th>
+                <th>ID Empleado</th>
+                <th>Fecha</th>
+                <th>Hora Inicio</th>
+                <th>Hora Fin</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
+
