@@ -157,3 +157,22 @@ function eliminarInvoice(id) {
       .catch(console.error);
   }
 }
+
+-----------------
+
+// Dentro de getInvoices() en el forEach, cambia esta parte:
+
+tbody.innerHTML += `
+  <tr>
+    <td>${invoice.invoice_id}</td>
+    <td>${invoice.id_transaction}</td>
+    <td>${invoice.id_client}</td>
+    <td>${invoice.billing_period}</td>
+    <td>${invoice.billed_amount}</td>
+    <td>${invoice.amount_paid}</td>
+    <td>
+      <button onclick="editarInvoice(${invoice.invoice_id})">Edit</button>
+      <button onclick="eliminarInvoice(${invoice.invoice_id})">Delete</button>
+    </td>
+  </tr>
+`;
