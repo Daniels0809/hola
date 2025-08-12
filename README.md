@@ -15,7 +15,7 @@
         <input type="text" id="billing_period" placeholder="billing_period" required>
         <input type="number" id="billed_amount" required>
         <input type="number" id="amount_paid" required>
-        <button type="submit">Save</button>
+        <button type="submit">Sa8ve</button>
     </form>
 
     <table id="invoicesTable" border="1">
@@ -313,3 +313,301 @@ if (result.affectedRows === 0) {
 res.json({ message: "factura eliminada con éxito" });
 });
 });
+
+
+
+organizado
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>CRUD Facturas</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <h1>Gestión de Facturas</h1>
+
+    <form id="facturaForm">
+        <input type="hidden" id="invoice_id" />
+        <input type="text" id="id_transaction" placeholder="Id transaction" required />
+        <input type="text" id="id_client" placeholder="Id client" required />
+        <input type="text" id="billing_period" placeholder="Billing period" required />
+        <input type="number" id="billed_amount" placeholder="Billed amount" required />
+        <input type="number" id="amount_paid" placeholder="Amount paid" required />
+        <button type="submit">Guardar</button>
+    </form>
+
+    <table id="invoicesTable" border="1">
+        <thead>
+            <tr>
+                <th>ID Factura</th>
+                <th>ID Transacción</th>
+                <th>ID Cliente</th>
+                <th>Periodo Facturado</th>
+                <th>Monto Facturado</th>
+                <th>Monto Pagado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script src="main.js"></script>
+</body>
+</html>
+
+
+back
+
+const API_URL = "http://localhost:3000/invoices";
+let editando = false;
+
+document.addEventListener("DOMContentLoaded", () => {
+  getInvoices();
+
+  document.getElementById("facturaForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const invoice_id = document.getElementById("invoice_id").value;
+    const factura = {
+      id_transaction: document.getElementById("id_transaction").value,
+      id_client: document.getElementById("id_client").value,
+      billing_period: document.getElementById("billing_period").value,
+      billed_amount: parseFloat(document.getElementById("billed_amount").value),
+      amount_paid: parseFloat(document.getElementById("amount_paid").value),
+    };
+
+    if (!editando) {
+      // Crear
+      fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(factura),
+      })
+        .then(res => res.json())
+        .then(() => {
+          getInvoices();
+          this.reset();
+        })
+        .catch(console.error);
+    } else {
+      // Actualizar
+      fetch(`${API_URL}/${invoice_id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(factura),
+      })
+        .then(res => res.json())
+        .then(() => {
+          getInvoices();
+          this.reset();
+          editando = false;
+          this.querySelector("button[type='submit']").textContent = "Guardar";
+        })
+        .catch(console.error);
+    }
+  });
+});
+
+// Cargar todas las facturas
+function getInvoices() {
+  fetch(API_URL)
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.querySelector("#invoicesTable tbody");
+      tbody.innerHTML = "";
+      data.forEach(factura => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${factura.invoice_id}</td>
+            <td>${factura.id_transaction}</td>
+            <td>${factura.id_client}</td>
+            <td>${factura.billing_period}</td>
+            <td>${factura.billed_amount}</td>
+            <td>${factura.amount_paid}</td>
+            <td>
+              <button onclick="editarFactura(${factura.invoice_id})">Editar</button>
+              <button onclick="eliminarFactura(${factura.invoice_id})">Eliminar</button>
+            </td>
+          </tr>
+        `;
+      });
+    })
+    .catch(console.error);
+}
+
+// Editar factura (carga datos al formulario)
+function editarFactura(id) {
+  fetch(`${API_URL}/${id}`)
+    .then(res => res.json())
+    .then(factura => {
+      document.getElementById("invoice_id").value = factura.invoice_id;
+      document.getElementById("id_transaction").value = factura.id_transaction;
+      document.getElementById("id_client").value = factura.id_client;
+      document.getElementById("billing_period").value = factura.billing_period;
+      document.getElementById("billed_amount").value = factura.billed_amount;
+      document.getElementById("amount_paid").value = factura.amount_paid;
+
+      editando = true;
+      document.querySelector("#facturaForm button[type='submit']").textContent = "Actualizar";
+    })
+    .catch(console.error);
+}
+
+// Eliminar factura
+function eliminarFactura(id) {
+  if (confirm("¿Seguro que quieres eliminar esta factura?")) {
+    fetch(`${API_URL}/${id}`, {
+      method: "DELETE",
+    })
+      .then(res => res.json())
+      .then(() => getInvoices())
+      .catch(console.error);
+  }
+}
+
+
+express corregido
+
+
+import mysql from "mysql2";
+import fs from "fs";
+import csv from "csv-parser";
+import express from "express";
+import cors from "cors";
+
+const connection = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "Qwe.123*",
+  database: "transactions",
+});
+
+connection.connect((error) => {
+  if (error) {
+    console.error("Error de conexión:", error);
+    return;
+  }
+  console.log("Conexión exitosa a MySQL");
+});
+
+const app = express();
+app.use(cors());
+app.use(express.json()); // Middleware para JSON
+
+// --- Importar CSVs (ejecutar solo una vez, o comentar después) ---
+/*
+fs.createReadStream('data/clients.csv')
+  .pipe(csv())
+  .on('data', (row) => {
+    connection.query("INSERT INTO clients(id_client, client_name, address, phone, email, platform_used) VALUES (?, ?, ?, ?, ?, ?)", [row.id_client, row.client_name, row.address, row.phone, row.email, row.platform_used], (error) => {
+      if (error) console.error(error);
+    });
+  });
+
+fs.createReadStream('data/transaction_status.csv')
+  .pipe(csv())
+  .on('data', (row) => {
+    connection.query("INSERT INTO transaction_status(id_status, transaction_status) VALUES (?, ?)", [row.id_status, row.transaction_status], (error) => {
+      if (error) console.error(error);
+    });
+  });
+
+fs.createReadStream('data/transactions.csv')
+  .pipe(csv())
+  .on('data', (row) => {
+    connection.query("INSERT INTO transactions(id_transaction, transaction_date, transaction_amount, id_status, transaction_type) VALUES (?, ?, ?, ?, ?)", [row.id_transaction, row.transaction_date, row.transaction_amount, row.id_status, row.transaction_type], (error) => {
+      if (error) console.error(error);
+    });
+  });
+
+fs.createReadStream('data/invoices.csv')
+  .pipe(csv())
+  .on('data', (row) => {
+    connection.query("INSERT INTO invoices(invoice_id, id_transaction, id_client, billing_period, billed_amount, amount_paid) VALUES (?, ?, ?, ?, ?, ?)", [row.invoice_id, row.id_transaction, row.id_client, row.billing_period, row.billed_amount, row.amount_paid], (error) => {
+      if (error) console.error(error);
+    });
+  });
+*/
+
+// --- Rutas CRUD ---
+
+// Obtener todas las facturas
+app.get("/invoices", (req, res) => {
+  connection.query("SELECT * FROM invoices", (error, results) => {
+    if (error) return res.status(500).json({ error: "Error al obtener facturas" });
+    res.json(results);
+  });
+});
+
+// Obtener factura por id
+app.get("/invoices/:id", (req, res) => {
+  const { id } = req.params;
+  connection.query("SELECT * FROM invoices WHERE invoice_id = ?", [id], (error, results) => {
+    if (error) return res.status(500).json({ error: "Error al obtener la factura" });
+    if (results.length === 0) return res.status(404).json({ message: "Factura no encontrada" });
+    res.json(results[0]);
+  });
+});
+
+// Crear factura
+app.post("/invoices", (req, res) => {
+  const { id_transaction, id_client, billing_period, billed_amount, amount_paid } = req.body;
+  const sql = "INSERT INTO invoices(id_transaction, id_client, billing_period, billed_amount, amount_paid) VALUES (?, ?, ?, ?, ?)";
+  connection.query(sql, [id_transaction, id_client, billing_period, billed_amount, amount_paid], (error, result) => {
+    if (error) return res.status(500).json({ error: "Error al crear la factura" });
+    res.json({ message: "Factura creada con éxito", invoice_id: result.insertId });
+  });
+});
+
+// Actualizar factura
+app.put("/invoices/:id", (req, res) => {
+  const { id } = req.params;
+  const { id_transaction, id_client, billing_period, billed_amount, amount_paid } = req.body;
+  const sql = "UPDATE invoices SET id_transaction=?, id_client=?, billing_period=?, billed_amount=?, amount_paid=? WHERE invoice_id=?";
+  connection.query(sql, [id_transaction, id_client, billing_period, billed_amount, amount_paid, id], (error, result) => {
+    if (error) return res.status(500).json({ error: "Error al actualizar la factura" });
+    if (result.affectedRows === 0) return res.status(404).json({ message: "Factura no encontrada" });
+    res.json({ message: "Factura actualizada con éxito" });
+  });
+});
+
+// Eliminar factura
+app.delete("/invoices/:id", (req, res) => {
+  const { id } = req.params;
+  const sql = "DELETE FROM invoices WHERE invoice_id=?";
+  connection.query(sql, [id], (error, result) => {
+    if (error) return res.status(500).json({ error: "Error al eliminar la factura" });
+    if (result.affectedRows === 0) return res.status(404).json({ message: "Factura no encontrada" });
+    res.json({ message: "Factura eliminada con éxito" });
+  });
+});
+
+// Arrancar servidor
+app.listen(3000, () => {
+  console.log("Servidor corriendo en http://localhost:3000");
+});
+
+
+/mi-proyecto/
+│
+├── /backend/
+│   ├── server.js           # Tu servidor Express con API REST y conexión MySQL
+│   ├── package.json
+│   ├── node_modules/
+│   └── /data/              # CSVs para cargar en BD (opcional)
+│
+└── /frontend/
+    ├── index.html          # Tu HTML con formulario y tabla
+    ├── main.js             # JavaScript para consumir API y manejar UI
+    └── style.css           # Estilos CSS
+
+
+
+
+cd backend
+node server.js
+
+node server.js
