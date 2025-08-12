@@ -46,4 +46,114 @@ ALTER TABLE reservas ADD CONSTRAINT reservas_ibfk_3 FOREIGN KEY (id_empleado) RE
 ALTER TABLE reservas ADD CONSTRAINT check_horas CHECK (hora_fin > hora_inicio);
 
 
+
 select * from reservas;
+
+
+
+const API_URL = "http://localhost:3000/invoices";
+let editando = false;
+
+document.addEventListener("DOMContentLoaded", () => {
+  getInvoices();
+
+  document.getElementById("invoiceForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const invoice_id = document.getElementById("invoice_id").value;
+    const invoice = {
+      id_transaction: document.getElementById("id_transaction").value,
+      id_client: document.getElementById("id_client").value,
+      billing_period: document.getElementById("billing_period").value,
+      billed_amount: parseFloat(document.getElementById("billed_amount").value),
+      amount_paid: parseFloat(document.getElementById("amount_paid").value),
+    };
+
+    if (!editando) {
+      // Crear
+      fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(invoice),
+      })
+        .then(res => res.json())
+        .then(() => {
+          getInvoices();
+          this.reset();
+        })
+        .catch(console.error);
+    } else {
+      // Actualizar
+      fetch(`${API_URL}/${invoice_id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(factura),
+      })
+        .then(res => res.json())
+        .then(() => {
+          getInvoices();
+          this.reset();
+          editando = false;
+          this.querySelector("button[type='submit']").textContent = "Guardar";
+        })
+        .catch(console.error);
+    }
+  });
+});
+
+// Cargar todas las facturas
+function getInvoices() {
+  fetch(API_URL)
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.querySelector("#invoicesTable tbody");
+      tbody.innerHTML = "";
+      data.forEach(invoice => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${invoice.invoice_id}</td>
+            <td>${invoice.id_transaction}</td>
+            <td>${invoice.id_client}</td>
+            <td>${invoice.billing_period}</td>
+            <td>${invoice.billed_amount}</td>
+            <td>${invoice.amount_paid}</td>
+            <td>
+              <button onclick="editInvoice(${invoice.invoice_id})">Edit</button>
+              <button onclick="deleteInvoice(${invoice.invoice_id})">Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+    })
+    .catch(console.error);
+}
+
+// Editar factura (carga datos al formulario)
+function editarInvoice(id) {
+  fetch(`${API_URL}/${id}`)
+    .then(res => res.json())
+    .then(invoice => {
+      document.getElementById("invoice_id").value = invoice.invoice_id;
+      document.getElementById("id_transaction").value = invoice.id_transaction;
+      document.getElementById("id_client").value = invoice.id_client;
+      document.getElementById("billing_period").value = invoice.billing_period;
+      document.getElementById("billed_amount").value = invoice.billed_amount;
+      document.getElementById("amount_paid").value = invoice.amount_paid;
+
+      editando = true;
+      document.querySelector("#facturaForm button[type='submit']").textContent = "UPDATE";
+    })
+    .catch(console.error);
+}
+
+// Eliminar factura
+function eliminarInvoice(id) {
+  if (confirm("¿Seguro que quieres eliminar esta factura?")) {
+    fetch(`${API_URL}/${id}`, {
+      method: "DELETE",
+    })
+      .then(res => res.json())
+      .then(() => getInvoices())
+      .catch(console.error);
+  }
+}
